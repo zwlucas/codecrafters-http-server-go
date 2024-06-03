@@ -2,11 +2,14 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"net"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -28,7 +31,20 @@ func (r *Router) handler(request *Request) func(*Request) *Response {
 
 func (r *Router) write(writer io.Writer, response *Response, request *Request) (err error) {
 	if slices.Contains(strings.Split(request.Header("Accept-Encoding"), ", "), "gzip") {
+		var b bytes.Buffer
+
+		gz := gzip.NewWriter(&b)
+		if _, err := gz.Write(response.body); err != nil {
+			panic(err)
+		}
+
+		if err := gz.Close(); err != nil {
+			panic(err)
+		}
+
+		response.headers["Content-Length"] = strconv.Itoa(b.Len())
 		response.headers["Content-Encoding"] = "gzip"
+		response.body = b.Bytes()
 	}
 
 	_, err = writer.Write(response.StatusLine())
