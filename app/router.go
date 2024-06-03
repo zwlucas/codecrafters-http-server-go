@@ -6,6 +6,8 @@ import (
 	"io"
 	"net"
 	"regexp"
+	"slices"
+	"strings"
 )
 
 type Router struct {
@@ -25,7 +27,7 @@ func (r *Router) handler(request *Request) func(*Request) *Response {
 }
 
 func (r *Router) write(writer io.Writer, response *Response, request *Request) (err error) {
-	if request.Header("Accept-Encoding") == "gzip" {
+	if slices.Contains(strings.Split(request.Header("Accept-Encoding"), ", "), "gzip") {
 		response.headers["Content-Encoding"] = "gzip"
 	}
 
