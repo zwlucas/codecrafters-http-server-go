@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -19,16 +20,41 @@ func main() {
 		os.Exit(1)
 	}
 
-	reader := NewRequestReader(conn)
-
-	target, err := reader.Target()
+	request, err := NewRequest(conn)
 	if err != nil {
 		fmt.Println("Error getting target: ", err.Error())
 		os.Exit(1)
 	}
 
-	if target == "/" {
+	if request.Target == "/" {
 		_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+		if err != nil {
+			fmt.Println("Error connection write: ", err.Error())
+		}
+	} else if strings.HasPrefix(request.Target, "/echo/") {
+		message := strings.SplitN(request.Target, "/", 3)[2]
+
+		_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n"))
+		if err != nil {
+			fmt.Println("Error connection write: ", err.Error())
+		}
+
+		_, err = conn.Write([]byte("Content-Type: text/plain\r\n"))
+		if err != nil {
+			fmt.Println("Error connection write: ", err.Error())
+		}
+
+		_, err = conn.Write([]byte(fmt.Sprintf("Content-Length: %d\r\n", len(message))))
+		if err != nil {
+			fmt.Println("Error connection write: ", err.Error())
+		}
+
+		_, err = conn.Write([]byte("\r\n"))
+		if err != nil {
+			fmt.Println("Error connection write: ", err.Error())
+		}
+
+		_, err = conn.Write([]byte(message))
 		if err != nil {
 			fmt.Println("Error connection write: ", err.Error())
 		}
