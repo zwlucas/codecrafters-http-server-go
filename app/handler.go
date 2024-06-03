@@ -43,7 +43,7 @@ func userAgentHandler(request *Request) *Response {
 	}, []byte(header))
 }
 
-func fileHandler(request *Request) *Response {
+func getFile(request *Request) *Response {
 	file, err := os.Open(filepath.Join(directory, strings.Split(request.Target(), "/")[2]))
 	if err != nil {
 		return NewResponse(NotFound, nil, nil)
@@ -56,12 +56,37 @@ func fileHandler(request *Request) *Response {
 	}, buf)
 }
 
+func createFile(request *Request) *Response {
+	fPath := filepath.Join(directory, strings.Split(request.Target(), "/")[2])
+	fmt.Println("create file: ", fPath)
+
+	file, err := os.Create(fPath)
+	if err != nil {
+		return NewResponse(InternalServerError, nil, nil)
+	}
+
+	defer file.Close()
+
+	length, err := strconv.Atoi(request.Header("Content-Length"))
+	if err != nil {
+		return NewResponse(InternalServerError, nil, nil)
+	}
+
+	_, err = io.CopyN(file, request.Body(), int64(length))
+	if err != nil {
+		return NewResponse(InternalServerError, nil, nil)
+	}
+
+	return NewResponse(Created, nil, nil)
+}
+
 func Register(builder *RouterBuilder) {
 	builder.Add("GET", regexp.MustCompile("^/$"), basePathHandler)
 	builder.Add("GET", regexp.MustCompile("^/echo/[a-zA-Z]+$"), echoHandler)
 	builder.Add("GET", regexp.MustCompile("^/user-agent$"), userAgentHandler)
 
 	if directory != "" {
-		builder.Add("GET", regexp.MustCompile("^/files/.+$"), fileHandler)
+		builder.Add("GET", regexp.MustCompile("^/files/.+$"), getFile)
+		builder.Add("POST", regexp.MustCompile("^/files/.+$"), createFile)
 	}
 }

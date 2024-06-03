@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"net"
 	"regexp"
@@ -26,16 +27,19 @@ func (r *Router) handler(request *Request) func(*Request) *Response {
 func (r *Router) write(writer io.Writer, response *Response) (err error) {
 	_, err = writer.Write(response.StatusLine())
 	if err != nil {
+		fmt.Println("Error writing status:", err)
 		return
 	}
 
 	_, err = writer.Write(response.Headers())
 	if err != nil {
+		fmt.Println("Error writing headers:", err)
 		return
 	}
 
 	_, err = writer.Write(response.Body())
 	if err != nil {
+		fmt.Println("Error writing body:", err)
 		return
 	}
 

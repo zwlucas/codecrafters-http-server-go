@@ -11,8 +11,10 @@ type Status interface {
 }
 
 var (
-	Ok       Status = &status{200, "OK"}
-	NotFound Status = &status{404, "Not Found"}
+	Ok                  Status = &status{200, "OK"}
+	Created             Status = &status{201, "Created"}
+	NotFound            Status = &status{404, "Not Found"}
+	InternalServerError Status = &status{500, "Internal Server Error"}
 )
 
 func (s *status) Code() int {

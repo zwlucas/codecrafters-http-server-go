@@ -19,6 +19,7 @@ type requestLine struct {
 type Request struct {
 	line    requestLine
 	headers requestHeaders
+	body    *bufio.Reader
 }
 
 func newRequestHeaders(reader *bufio.Reader) (requestHeaders, error) {
@@ -72,7 +73,11 @@ func NewRequest(reader *bufio.Reader) (*Request, error) {
 		return nil, err
 	}
 
-	return &Request{line, headers}, nil
+	return &Request{line: line, headers: headers, body: reader}, nil
+}
+
+func (r *Request) Body() *bufio.Reader {
+	return r.body
 }
 
 func (r *Request) Method() string {
