@@ -43,6 +43,8 @@ func (r *Router) write(writer io.Writer, response *Response) (err error) {
 }
 
 func (r *Router) Handle(conn net.Conn) error {
+	defer conn.Close()
+
 	request, err := NewRequest(bufio.NewReader(conn))
 	if err != nil {
 		return err

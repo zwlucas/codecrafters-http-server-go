@@ -21,11 +21,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
 
-	router.Handle(conn)
+		if err := router.Handle(conn); err != nil {
+			fmt.Println("Failed to handle: ", err.Error())
+			os.Exit(1)
+		}
+	}
 }
