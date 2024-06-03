@@ -24,7 +24,11 @@ func (r *Router) handler(request *Request) func(*Request) *Response {
 	}
 }
 
-func (r *Router) write(writer io.Writer, response *Response) (err error) {
+func (r *Router) write(writer io.Writer, response *Response, request *Request) (err error) {
+	if request.Header("Accept-Encoding") == "gzip" {
+		response.headers["Content-Encoding"] = "gzip"
+	}
+
 	_, err = writer.Write(response.StatusLine())
 	if err != nil {
 		fmt.Println("Error writing status:", err)
@@ -54,7 +58,7 @@ func (r *Router) Handle(conn net.Conn) error {
 		return err
 	}
 
-	return r.write(conn, r.handler(request)(request))
+	return r.write(conn, r.handler(request)(request), request)
 }
 
 type Route struct {
